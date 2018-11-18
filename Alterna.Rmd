@@ -1,0 +1,119 @@
+---
+title: "Alterna"
+author: "Blake"
+date: "11/17/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(readxl) 
+library(data.table)
+library(dplyr)
+CA <- read_excel("ContactA.xlsx")
+A <- read_excel("A.xlsx")
+CB <- read_excel("Contact B.xlsx")
+B <- read_excel("B.xlsx")
+A= A[-1,]
+colnames(A)[4] <- "Email"
+CA1 <- merge(CA, A, by="Email", all = TRUE)
+colnames(CA1)[10] <- "Nombre1"
+colnames(CA1)[9] <- "Survey"
+CA1$Survey[is.na(CA1$Nombre1)] <- "N"
+CA1$Survey<- ifelse(CA1$Nombre1 != "NA", "Y")
+
+CA2 <- select(CA1, 1:9)
+
+B= B[-1,]
+colnames(B)[4] <- "Email"
+CB1 <- merge(CB, B, by="Email", all = TRUE)
+colnames(CB1)[10] <- "Nombre1"
+colnames(CB1)[9] <- "Survey"
+CB1$Survey[is.na(CB1$Nombre1)] <- "N"
+CB1$Survey<- ifelse(CB1$Nombre1 != "NA", "Y")
+
+CB2 <- select(CB1, 1:9)
+
+ca3 <- CA2
+
+ca3$Survey[ca3$Survey == "Y"] <- "1"
+ca3$Survey[ca3$Survey == "N"] <- "0"
+ca3 <- as.numeric(CA1$Survey)
+
+cb3$Survey[cb3$Survey == "Y"] <- "1"
+cb3$Survey[cb3$Survey == "N"] <- "0"
+
+
+
+CB1$Survey[is.na(CB1$Nombre1)] <- "0"
+CB1$Survey<- ifelse(CB1$Nombre1 != "NA", "1")
+CB1 <- as.numeric(CB1$Survey)
+setDT(res)[, occurrence := .N, by = .(Program)]
+res <- cb3 %>% group_by(Program)
+res <- select (cb3, 1:9)
+
+library(plotly)
+res <- transform(res, Survey = as.numeric(res$Survey))
+res1 <- cbind(aggregate(Survey ~ Program, res, sum))
+
+T <- ggplot(res1, aes(Program, Survey)) +   
+    geom_bar(aes(fill = Program, color=Program), position = "dodge", stat="identity")+scale_color_manual(values=c(rep("white", 45)))+ theme(axis.text.x=element_text(angle=90, hjust=1))
+t=ggplotly(T + ggtitle("Response Rate by Program for Basic Entrepreneurs"))
+t
+
+
+
+setDT(ca3)[, occurrence := .N, by = .(Program)]
+res4 <- ca3 %>% group_by(Program)
+res4 <- select (ca3, 1:9)
+
+library(plotly)
+res4 <- transform(res4, Survey = as.numeric(res4$Survey))
+res5 <- cbind(aggregate(Survey ~ Program, res4, sum))
+
+T <- ggplot(res5, aes(Program, Survey)) +   
+    geom_bar(aes(fill = Program, color=Program), position = "dodge", stat="identity")+scale_color_manual(values=c(rep("white", 45)))+ theme(axis.text.x = element_text(size = 5, angle = 45, hjust = 1))
+t=ggplotly(T + ggtitle("Response Rate by Program for Advanced Entrepreneurs"))
+t
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+z <- read_excel("BSales.xlsx")
+colnames(z)[7] <- "Sales"
+colnames(z)[9] <- "Sales2"
+z= z[-1,]
+z1 <- select(z, 7)
+z2 <- select(z, 9)
+z1 <- na.omit(z1)
+z2 <- na.omit(z2)
+z1 <- as.numeric(unlist(z1))
+z2 <- as.numeric(unlist(z2))
+z3 <- select(z, 7, 9)
+
+z <- read_excel("ASales.xlsx")
+z= z[-1,]
+colnames(z)[33] <- "Total Amount of Financing Received"
+z3 <- select(z, 1:4, 18:24, 33)
+z4 <- na.omit(z3)
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+q <- read_excel("Revs.xlsx")
+q$occur <- data.frame(table(q$`Account Name`))
+h <-q[duplicated(q$`Account Name`)|duplicated(q$`Account Name`, fromLast=TRUE),]
+
+t <- q %>% distinct(q$`Account Name`, .keep_all = TRUE)
+t <- select(t, 1:6)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
